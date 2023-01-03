@@ -15,7 +15,21 @@
 
         // Méthodes  
         public function __construct() { 
-            $this->bdd = mysqli_connect('localhost', 'root', '', 'classes');
+            $host = 'localhost';
+            $dbname = 'classes';
+            $dbuser = 'root';
+            $dbpass = '';
+
+            /* $this->bdd = new PDO('mysql:host=localhost; dbname=classes; charset=utf8', 'root', ''); */
+            try {
+                $this->bdd = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $dbuser, $dbpass);
+                $this->bdd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            } 
+            catch (PDOException $e) 
+            {
+                echo "Erreur : " . $e->getMessage();
+                die();
+            }
             //vérification de session
             if(isset($_SESSION['user'])) 
             {
@@ -31,14 +45,29 @@
         public function register($login, $password, $email, $firstname, $lastname)
         {
                 if ($login != "" && $password != "" && $email != "" && $firstname != "" && $lastname != "") {
-                    $request = "SELECT * FROM utilisateurs WHERE login = '$login' ";
-                    $exec = mysqli_query($this->bdd, $request);                    
-                    $row = mysqli_num_rows($exec);
-                    /* var_dump($row); */
+                    $request = "SELECT * FROM utilisateurs WHERE login = :login ";
+                    // préparation de la requête
+                    $select = $this->bdd->prepare($request);
+                    // exécution de la requête avec liaison des paramètres
+                    $select->execute(array(
+                        ':login' => $login
+                    ));
+                    $fetch = $select->fetchAll();
+                    $row = count($fetch);
                     if ($row == 0) {
-                        $request2 = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES
-                        ('$login', '$password', '$email', '$firstname', '$lastname')";
-                        $requestexec = mysqli_query($this->bdd, $request2);
+                        $register = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES
+                        (:login, :password, :email, :firstname, :lastname)";
+                        // préparation de la requête             
+                        $insert = $this->bdd->prepare($register);
+                        // exécution de la requête avec liaison des paramètres
+                        $insert->execute(array(
+                            ':login' => $login,
+                            ':password' => $password,
+                            ':email' => $email,
+                            ':firstname' => $firstname,
+                            ':lastname' => $lastname
+                        ));
+                        echo "Inscription réussie !";
                     }
                     else {
                         $error = "Ce login existe déjà !";
@@ -53,12 +82,22 @@
         public function connect($login, $password)
         {
             if($login != "" && $password != "") {
-                $request = "SELECT * FROM utilisateurs WHERE login = '$login' AND password = '$password' ";
-                $exec = mysqli_query($this->bdd, $request);
-                $result = mysqli_fetch_assoc($exec);
-                $row = mysqli_num_rows($exec);
+                $request = "SELECT * FROM utilisateurs WHERE login = :login AND password = :password ";
+                // préparation de la requête
+                $select = $this->bdd->prepare($request);
+                // exécution de la requête avec liaison des paramètres
+                $select->execute(array(
+                    ':login' => $login,
+                    ':password' => $password
+                ));
+                $result = $select->fetchAll();
                 
-                if($row == 1) {
+                if(count($result) == 1) {
+                    $select->execute(array(
+                        ':login' => $login,
+                        ':password' => $password
+                    ));
+                    $result = $select->fetch(PDO::FETCH_ASSOC);
                     /* $this->id = $result['id'];
                     $this->login = $result['login'];
                     $this->password = $result['password'];
@@ -101,21 +140,28 @@
         {   
             if($this->isConnected()) 
             {
-                $delete = "DELETE FROM utilisateurs WHERE id = '$this->id' ";
+                $delete = "DELETE FROM utilisateurs WHERE id = :id ";
+                // préparation de la requête
+                $delete = $this->bdd->prepare($delete);
+                // exécution de la requête avec liaison des paramètres
+                $delete->execute(array(
+                    ':id' => $this->id
+                ));
 
-                $result = $this->bdd->query($delete);
+                $result = $delete->fetchAll();
+
                 if ($result == TRUE) {
                     echo "Utilisateur supprimé !"; 
                     session_destroy();
                 }
                 else{
-                    echo "Error:" . $delete . "<br>" . $this->bdd->error;
+                    echo "Erreur lors de la suppression de l'utilisateur !";
                 }
             }
             else {
                 echo "Vous devez être connecté pour supprimer votre compte !";
             }
-            mysqli_close($this->bdd); 
+            $this->bdd = null; 
         }
 
         public function update($login, $password, $email, $firstname, $lastname)
@@ -130,8 +176,18 @@
                     $_SESSION['user']['firstname'] = $firstname;
                     $_SESSION['user']['lastname'] = $lastname; 
 
-                    $update = "UPDATE utilisateurs SET login = '$login', password = '$password', email = '$email', firstname = '$firstname', lastname = '$lastname' WHERE id = '$this->id' ";
-                    $exec = mysqli_query($this->bdd, $update);
+                    $update = "UPDATE utilisateurs SET login = :login, password = :password, email = :email, firstname = :firstname, lastname = :lastname WHERE id = :id ";
+                    // préparation de la requête
+                    $select = $this->bdd->prepare($update);
+                    // exécution de la requête avec liaison des paramètres
+                    $select->execute(array(
+                        ':login' => $login,
+                        ':password' => $password,
+                        ':email' => $email,
+                        ':firstname' => $firstname,
+                        ':lastname' => $lastname,
+                        ':id' => $this->id
+                    ));
                     echo "Mise à jour terminée !";
                 }
                 else {
@@ -215,34 +271,34 @@
     }
 
 $user = new User();
-// test register    //OK
-// echo $user->register('test', 'test', 'test@email.com', 'testname', 'testprenom');
+// test register PDO   //OK
+// echo $user->register('test2', 'test2', 'test2@test2.fr', 'testname2', 'testprenom2');
 
-//test connect  //OK
-//echo $user->connect('test', 'test');
+//test connect  PDO //OK
+// echo $user->connect('test', 'test');
 
-//test disconnect   //OK
-//echo $user->disconnect();
+//test disconnect PDO  //OK
+// echo $user->disconnect();
 
-//test update //OK
-//echo $user->update('test', 'test', 'test@test.fr', 'testnom', 'testprenom');
+//test update PDO //OK
+// echo $user->update('test1', 'test1', 'test1@test.fr', 'testnom1', 'testprenom1');
 
-//test isConnected   //OK
-// echo $user->isConnected();
+//test isConnected PDO  //OK
+//echo $user->isConnected();
 
-//test getAllInfos   //OK
-//echo $user->getAllInfos();
+//test getAllInfos PDO  //OK
+// echo $user->getAllInfos();
 
-//test getLogin  //OK
+//test getLogin PDO //OK
 //echo $user->getLogin();
 
-//test getEmail  //OK
+//test getEmail PDO //OK
 //echo $user->getEmail();
 
-//test getFirstname  //OK
+//test getFirstname PDO //OK
 //echo $user->getFirstname();
 
-//test getLastname  //OK
+//test getLastname PDO //OK
 //echo $user->getLastname();
 
 /* echo "<br>";
