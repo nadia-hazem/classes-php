@@ -234,15 +234,40 @@
         public function getAllInfos()
         {
             if($this->isConnected()) 
-            {
-                echo "login : " . $this->login . "<br>";
+            {   ?>
+                <table border="1" style="border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>id</td>
+                            <th>login</td>
+                            <th>password</td>
+                            <th>email</td>
+                            <th>firstname</td>
+                            <th>lastname</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th><?php echo $this->id; ?></td>
+                            <td><?php echo $this->login; ?></td>
+                            <td><?php echo $this->password; ?></td>
+                            <td><?php echo $this->email; ?></td>
+                            <td><?php echo $this->firstname; ?></td>
+                            <td><?php echo $this->lastname; ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <?php
+                /* echo "login : " . $this->login . "<br>";
                 echo "password : " . $this->password . "<br>";
                 echo "email : " . $this->email . "<br>";
                 echo "firstname : " . $this->firstname . "<br>";
-                echo "lastname : " . $this->lastname . "<br>";
+                echo "lastname : " . $this->lastname . "<br>"; */
             }
             else {
                 echo "Vous devez être connecté(e) pour voir vos informations !";
+            
             }
 
         }
