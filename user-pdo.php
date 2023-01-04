@@ -2,7 +2,7 @@
 <?php
     session_start();
 
-    class User
+    class Userpdo
     {
         // attributs
         private $id;
