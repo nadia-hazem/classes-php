@@ -173,11 +173,36 @@
         {   //vérification de session
             if($this->isConnected()) 
             {   // affichage des informations
-                echo "login : " . $this->login . "<br>";
+            ?>
+                <table border="1" style="border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>login</th>
+                            <th>password</th>
+                            <th>email</th>
+                            <th>firstname</th>
+                            <th>lastname</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th><?php echo $this->id; ?></th>
+                            <td><?php echo $this->login; ?></td>
+                            <td><?php echo $this->password; ?></td>
+                            <td><?php echo $this->email; ?></td>
+                            <td><?php echo $this->firstname; ?></td>
+                            <td><?php echo $this->lastname; ?></td>
+                        </tr>
+                    </tbody>
+
+            <?php   
+                /* echo "login : " . $this->login . "<br>";
                 echo "password : " . $this->password . "<br>";
                 echo "email : " . $this->email . "<br>";
                 echo "firstname : " . $this->firstname . "<br>";
-                echo "lastname : " . $this->lastname . "<br>";
+                echo "lastname : " . $this->lastname . "<br>"; */
+            
             }
             else {
                 echo "Vous devez être connecté(e) pour voir vos informations !";
@@ -269,6 +294,5 @@ echo "<br>";
 echo $user->firstname;
 echo "<br>";
 echo $user->lastname; */
-
 
 ?>
