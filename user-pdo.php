@@ -43,7 +43,7 @@
         } 
 
         public function register($login, $password, $email, $firstname, $lastname)
-        {
+        {       // vérification des champs
                 if ($login != "" && $password != "" && $email != "" && $firstname != "" && $lastname != "") {
                     $request = "SELECT * FROM utilisateurs WHERE login = :login ";
                     // préparation de la requête
@@ -52,8 +52,10 @@
                     $select->execute(array(
                         ':login' => $login
                     ));
+                    // récupération des résultats
                     $fetch = $select->fetchAll();
                     $row = count($fetch);
+                    // vérification de l'existence du login et insertion dans la base de données
                     if ($row == 0) {
                         $register = "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES
                         (:login, :password, :email, :firstname, :lastname)";
@@ -80,7 +82,7 @@
         }
 
         public function connect($login, $password)
-        {
+        {   // vérification des champs
             if($login != "" && $password != "") {
                 $request = "SELECT * FROM utilisateurs WHERE login = :login AND password = :password ";
                 // préparation de la requête
@@ -90,13 +92,15 @@
                     ':login' => $login,
                     ':password' => $password
                 ));
+                // récupération des résultats
                 $result = $select->fetchAll();
-                
+                // vérification de l'existence du login et mot de passe
                 if(count($result) == 1) {
                     $select->execute(array(
                         ':login' => $login,
                         ':password' => $password
                     ));
+                    // récupération des résultats
                     $result = $select->fetch(PDO::FETCH_ASSOC);
                     /* $this->id = $result['id'];
                     $this->login = $result['login'];
@@ -124,10 +128,10 @@
         }
 
         public function disconnect()
-        {
+        {   // vérification de la connexion
             if($this->isConnected()) 
                 {
-                // Close connection
+                // fermeture de la connexion
                 echo "déconnexion réussie";
                 session_destroy();
                 }
@@ -139,7 +143,7 @@
         public function delete()
         {   
             if($this->isConnected()) 
-            {
+            {   // requête de suppression
                 $delete = "DELETE FROM utilisateurs WHERE id = :id ";
                 // préparation de la requête
                 $delete = $this->bdd->prepare($delete);
@@ -147,9 +151,9 @@
                 $delete->execute(array(
                     ':id' => $this->id
                 ));
-
+                // récupération des résultats
                 $result = $delete->fetchAll();
-
+                // vérification de la suppression
                 if ($result == TRUE) {
                     echo "Utilisateur supprimé !"; 
                     session_destroy();
@@ -161,6 +165,7 @@
             else {
                 echo "Vous devez être connecté pour supprimer votre compte !";
             }
+            // fermeture de la connexion
             $this->bdd = null; 
         }
 
@@ -169,26 +174,43 @@
             if($this->isConnected())
             {
                 if ($login != "" && $password != "" && $email != "" && $firstname != "" && $lastname != "") 
-                {
+                {   // mise à jour des variables de session
                     $_SESSION['user']['login'] = $login;
                     $_SESSION['user']['password'] = $password;
                     $_SESSION['user']['email'] = $email;
                     $_SESSION['user']['firstname'] = $firstname;
                     $_SESSION['user']['lastname'] = $lastname; 
-
-                    $update = "UPDATE utilisateurs SET login = :login, password = :password, email = :email, firstname = :firstname, lastname = :lastname WHERE id = :id ";
-                    // préparation de la requête
-                    $select = $this->bdd->prepare($update);
+                    // vérification de l'existence du login
+                    $request = "SELECT * FROM utilisateurs WHERE login = :login ";
+                    // préparation de la requête 
+                    $select = $this->bdd->prepare($request);
                     // exécution de la requête avec liaison des paramètres
                     $select->execute(array(
-                        ':login' => $login,
-                        ':password' => $password,
-                        ':email' => $email,
-                        ':firstname' => $firstname,
-                        ':lastname' => $lastname,
-                        ':id' => $this->id
+                        ':login' => $login
                     ));
-                    echo "Mise à jour terminée !";
+                    // récupération des résultats
+                    $fetch = $select->fetchAll();
+                    $row = count($fetch);
+                    // vérification de la disponibilité du login et mise à jour dans la base de données
+                    if ($row == 0) {
+                        // requête de mise à jour
+                        $update = "UPDATE utilisateurs SET login = :login, password = :password, email = :email, firstname = :firstname, lastname = :lastname WHERE id = :id ";
+                        // préparation de la requête
+                        $select = $this->bdd->prepare($update);
+                        // exécution de la requête avec liaison des paramètres
+                        $select->execute(array(
+                            ':login' => $login,
+                            ':password' => $password,
+                            ':email' => $email,
+                            ':firstname' => $firstname,
+                            ':lastname' => $lastname,
+                            ':id' => $this->id
+                        ));
+                        echo "Mise à jour terminée !";
+                    }
+                    else {
+                        echo "Vous devez saisir un nouveau login !";
+                    }
                 }
                 else {
                     echo "Vous devez remplir tous les champs !";
@@ -270,24 +292,24 @@
         }
     }
 
-$user = new User();
+$user = new Userpdo();
 // test register PDO   //OK
-// echo $user->register('test2', 'test2', 'test2@test2.fr', 'testname2', 'testprenom2');
+//echo $user->register('test1', 'test1', 'test1@test.fr', 'testnom1', 'testprenom1');
 
 //test connect  PDO //OK
-// echo $user->connect('test', 'test');
+//echo $user->connect('test2', 'test2');
 
 //test disconnect PDO  //OK
-// echo $user->disconnect();
+//echo $user->disconnect();
 
 //test update PDO //OK
-// echo $user->update('test1', 'test1', 'test1@test.fr', 'testnom1', 'testprenom1');
+//echo $user->update('test', 'test', 'test@test.fr', 'testnom', 'testprenom');
 
 //test isConnected PDO  //OK
 //echo $user->isConnected();
 
 //test getAllInfos PDO  //OK
-// echo $user->getAllInfos();
+//echo $user->getAllInfos();
 
 //test getLogin PDO //OK
 //echo $user->getLogin();
